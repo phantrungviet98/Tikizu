@@ -1,7 +1,7 @@
 import React from 'react'
 import {View, StyleSheet} from 'react-native'
 import {Colors} from '../../Assets/Colors'
-import {TKButton} from '../../Components'
+import {TKButton, TKBanner} from '../../Components'
 import normalize from 'react-native-normalize/src/index'
 
 class SelectionScreen extends React.Component {
@@ -10,6 +10,7 @@ class SelectionScreen extends React.Component {
 
     return (
       <View style={styles.container}>
+        <TKBanner textStyle={styles.banner}/>
         <TKButton
           style={styles.buttonStart}
           title={'Bắt đầu chơi'}
@@ -35,6 +36,9 @@ const styles = StyleSheet.create({
   buttonStart: {
     marginBottom: normalize(20),
   },
+  banner: {
+    color: Colors.white_FFFFFF
+  }
 })
 
 export default SelectionScreen

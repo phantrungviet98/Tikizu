@@ -1,5 +1,5 @@
 import React from 'react'
-import {StyleSheet, TouchableOpacity} from 'react-native'
+import {StyleSheet, TouchableOpacity, Text} from 'react-native'
 import {Colors} from '../../../Assets'
 import ItemStateTypes from '../../../Common/Types/ItemStateTypes'
 
@@ -10,6 +10,15 @@ export class TakuzuTableItem extends React.PureComponent {
       itemState: props.data,
     }
     this.disabled = props.data !== ItemStateTypes.NOT_PICK
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.data !== this.props.data) {
+      this.disabled = this.props.data !== ItemStateTypes.NOT_PICK
+      this.setState({
+        itemState: this.props.data
+      })
+    }
   }
 
   onPress = () => {
@@ -44,7 +53,9 @@ export class TakuzuTableItem extends React.PureComponent {
           },
         ]}
         onPress={this.onPress}
-      />
+      >
+        {this.disabled && <Text>Tĩnh</Text>}
+      </TouchableOpacity>
     )
   }
 }
@@ -56,5 +67,7 @@ const styles = StyleSheet.create({
     height: '100%',
     borderWidth: 1,
     borderColor: Colors.gray_888888,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
 })

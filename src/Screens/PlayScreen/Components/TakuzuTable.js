@@ -29,18 +29,18 @@ class TakuzuTable extends React.PureComponent {
     return true
   }
 
-  checkLessThanThreeDigitsAdjacent = () => {
-    const transposeData = _.zip(...this.data)
+  checkLessThanThreeDigitsAdjacent = (data) => {
+    const transposeData = _.zip(...data)
     return (
-      this.checkLessThanThreeDigitsAdjacentRow(this.data) &&
+      this.checkLessThanThreeDigitsAdjacentRow(data) &&
       this.checkLessThanThreeDigitsAdjacentRow(transposeData)
     )
   }
 
-  checkNotSameBetweenRowsColumns = () => {
+  checkNotSameBetweenRowsColumns = (data) => {
     for (let i = 0; i < 5; i++) {
       for (let j = i + 1; j < 6; j++) {
-        if (_.isEqual(this.data[i], this.data[j])) {
+        if (_.isEqual(data[i], data[j])) {
           return false
         }
       }
@@ -49,16 +49,16 @@ class TakuzuTable extends React.PureComponent {
     return true
   }
 
-  checkSumEqual = () => {
+  checkSumEqual = (data) => {
     let sum0Ver = 0
     let sum0Hor = 0
 
     for (let i = 0; i < 6; i++) {
       for (let j = 0; j < 6; j++) {
-        if (this.data[i][j] === ItemStateTypes.PICK_ZERO) {
+        if (data[i][j] === ItemStateTypes.PICK_ZERO) {
           sum0Hor++
         }
-        if (this.data[j][i] === ItemStateTypes.PICK_ZERO) {
+        if (data[j][i] === ItemStateTypes.PICK_ZERO) {
           sum0Ver++
         }
       }
@@ -73,10 +73,10 @@ class TakuzuTable extends React.PureComponent {
     return true
   }
 
-  checkNotNull = () => {
+  checkNotNull = (data) => {
     for (let i = 0; i < 6; i++) {
       for (let j = 0; j < 6; j++) {
-        if (this.data[i][j] === ItemStateTypes.NOT_PICK) {
+        if (data[i][j] === ItemStateTypes.NOT_PICK) {
           return false
         }
       }
@@ -88,56 +88,105 @@ class TakuzuTable extends React.PureComponent {
   /**
    * check data is valid the rule of game
    * @param checkNull (for initial data we should not check null
+   * @param data
    * @returns {boolean}
    */
-  checkValid = (checkNull) => {
-
+  checkValid = (checkNull, data) => {
     return (
-      (checkNull ? this.checkNotNull() : true) &&
-      this.checkSumEqual() &&
-      this.checkLessThanThreeDigitsAdjacent() &&
-      this.checkNotSameBetweenRowsColumns()
+      checkNull &&
+      this.checkNotNull(data) &&
+      this.checkSumEqual(data) &&
+      this.checkLessThanThreeDigitsAdjacent(data) &&
+      this.checkNotSameBetweenRowsColumns(data)
     )
   }
 
-  getRandomStaticPosition = () => {
-    const randomPosition = []
-    const randomNumOfStatic = Math.floor(Math.random() * 5) + 2
-    let iter = 0
-    while (iter < randomNumOfStatic) {
-      const iRandomPosition = Math.floor(Math.random() * 4)
-      const jRandomPosition = Math.floor(Math.random() * 4)
-
-      const index = _.findIndex(
-        iRandomPosition,
-        (val) => val.i === iRandomPosition && val.j === jRandomPosition,
-      )
-      if (index === -1) {
-        randomPosition.push({
-          i: iRandomPosition,
-          j: jRandomPosition,
-        })
-      } else {
-        continue
-      }
-      iter++
-    }
-
-    return randomPosition
+  /**
+   * Random from min to max
+   * @param min
+   * @param max
+   * @returns Random value
+   */
+  tikiRandom = (min, max) => {
+    return Math.floor(Math.random() * (max - min + 1)) + min
   }
 
+  /**
+   * Get random position for initiation data
+   * @returns {[]}
+   */
+  getRandomStaticPosition = () => {
+    const randomPositions = []
+    let numberRandom = this.tikiRandom(2, 4)
+
+    while (numberRandom > 0) {
+      const randomPosition = {
+        i: this.tikiRandom(0, 5),
+        j: this.tikiRandom(0, 5),
+      }
+
+      if (
+        _.findIndex(
+          randomPositions,
+          (position) => position.i === randomPosition.i && position.j === randomPosition.j,
+        ) === -1
+      ) {
+        randomPositions.push(randomPosition)
+        numberRandom--
+      }
+    }
+
+    return randomPositions
+  }
+
+  checkTrueInitial = (data) => {
+    const transposeData = _.zip(...data)
+    return this.checkTrueInitialRow(data) && this.checkTrueInitialRow(transposeData)
+  }
+
+  /**
+   * Check initial data valid by row
+   * @param data
+   * @returns {boolean}
+   */
+  checkTrueInitialRow = (data) => {
+    let reverseArray = [...data]
+    reverseArray = reverseArray.reverse()
+
+    for (let i = 0; i < 5; i++) {
+      if (data[i][0] === data[i][1] && data[i][0] === data[i][5]) {
+        return false
+      }
+      if (reverseArray[i][0] === reverseArray[i][1] && reverseArray[i][0] === reverseArray[i][5]) {
+        return false
+      }
+    }
+    return true
+  }
+
+  /**
+   * Generate initial data
+   * @returns {any[]}
+   */
   generateData = () => {
     let data = new Array(6)
 
-    for (let i = 0; i < 6; i++) {
-      data[i] = new Array(6)
-    }
-
-    for (let i = 0; i < 6; i++) {
-      for (let j = 0; j < 6; j++) {
-        data[i][j] = ItemStateTypes.NOT_PICK
+    do {
+      for (let i = 0; i < 6; i++) {
+        data[i] = new Array(6)
       }
-    }
+
+      for (let i = 0; i < 6; i++) {
+        for (let j = 0; j < 6; j++) {
+          data[i][j] = ItemStateTypes.NOT_PICK
+        }
+      }
+
+      this.getRandomStaticPosition().forEach((position) => {
+        data[position.i][position.j] = this.tikiRandom(0, 1)
+      })
+    } while (!this.checkValid(false, data) && this.checkTrueInitial(data))
+
     return data
   }
 
@@ -148,30 +197,33 @@ class TakuzuTable extends React.PureComponent {
   }
 
   onPress = (key, data) => {
-    const {
-      navigation,
-      onWin,
-    } = this.props
+    const {navigation, onWin} = this.props
 
     for (let i = 0; i < 6; i++) {
       this.data[key][i] = data[i]
     }
 
-    if (this.checkValid(true)) {
+    if (this.checkValid(true, this.data)) {
       onWin()
-      navigation.navigate('Rank')
+      navigation.navigate('Rank', {
+        fromScreen: 'Play',
+        initialData: () => {
+          this.data = this.generateData()
+          this.forceUpdate()
+        },
+      })
     }
   }
 
   render() {
     return (
       <View style={styles.container}>
-        <TakuzuLine data={this.getArrayDataPerLine(0)} onPress={(data) => this.onPress(0, data)} />
-        <TakuzuLine data={this.getArrayDataPerLine(1)} onPress={(data) => this.onPress(1, data)} />
-        <TakuzuLine data={this.getArrayDataPerLine(2)} onPress={(data) => this.onPress(2, data)} />
-        <TakuzuLine data={this.getArrayDataPerLine(3)} onPress={(data) => this.onPress(3, data)} />
-        <TakuzuLine data={this.getArrayDataPerLine(4)} onPress={(data) => this.onPress(4, data)} />
-        <TakuzuLine data={this.getArrayDataPerLine(5)} onPress={(data) => this.onPress(5, data)} />
+        {[0, 1, 2, 3, 4, 5].map((element) => (
+          <TakuzuLine
+            data={this.getArrayDataPerLine(element)}
+            onPress={(data) => this.onPress(element, data)}
+          />
+        ))}
       </View>
     )
   }
