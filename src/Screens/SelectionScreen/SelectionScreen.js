@@ -1,7 +1,7 @@
 import React from 'react'
 import {View, StyleSheet} from 'react-native'
-import {SelectionButton} from './Components'
 import {Colors} from '../../Assets/Colors'
+import {TKButton} from '../../Components'
 import normalize from 'react-native-normalize/src/index'
 
 class SelectionScreen extends React.Component {
@@ -10,12 +10,12 @@ class SelectionScreen extends React.Component {
 
     return (
       <View style={styles.container}>
-        <SelectionButton
+        <TKButton
           style={styles.buttonStart}
           title={'Bắt đầu chơi'}
           onPress={() => navigation.navigate('Play')}
         />
-        <SelectionButton
+        <TKButton
           style={styles.buttonStart}
           title={'Xem bảng xếp hạng'}
           onPress={() => navigation.navigate('Rank')}

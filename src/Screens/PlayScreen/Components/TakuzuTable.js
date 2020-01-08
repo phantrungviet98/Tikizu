@@ -1,15 +1,103 @@
 import React from 'react'
 import {View, StyleSheet} from 'react-native'
+import {withNavigation} from 'react-navigation'
 import {TakuzuLine} from '../Components/TakuzuLine'
 import {Colors} from '../../../Assets/Colors'
 import {Metrics} from '../../../Assets'
 import ItemStateTypes from '../../../Common/Types/ItemStateTypes'
 import _ from 'lodash'
 
-export class TakuzuTable extends React.PureComponent {
+class TakuzuTable extends React.PureComponent {
   constructor(props) {
     super(props)
     this.data = this.generateData()
+  }
+
+  checkLessThanThreeDigitsAdjacentRow = (data) => {
+    for (let i = 0; i < 6; i++) {
+      for (let j = 0; j < 6; j++) {
+        const current = data[i][j]
+        const right = data[i][j + 1]
+        const nextRight = data[i][j + 2]
+
+        if (current === right && current === nextRight) {
+          return false
+        }
+      }
+    }
+
+    return true
+  }
+
+  checkLessThanThreeDigitsAdjacent = () => {
+    const transposeData = _.zip(...this.data)
+    return (
+      this.checkLessThanThreeDigitsAdjacentRow(this.data) &&
+      this.checkLessThanThreeDigitsAdjacentRow(transposeData)
+    )
+  }
+
+  checkNotSameBetweenRowsColumns = () => {
+    for (let i = 0; i < 5; i++) {
+      for (let j = i + 1; j < 6; j++) {
+        if (_.isEqual(this.data[i], this.data[j])) {
+          return false
+        }
+      }
+    }
+
+    return true
+  }
+
+  checkSumEqual = () => {
+    let sum0Ver = 0
+    let sum0Hor = 0
+
+    for (let i = 0; i < 6; i++) {
+      for (let j = 0; j < 6; j++) {
+        if (this.data[i][j] === ItemStateTypes.PICK_ZERO) {
+          sum0Hor++
+        }
+        if (this.data[j][i] === ItemStateTypes.PICK_ZERO) {
+          sum0Ver++
+        }
+      }
+      if (sum0Hor !== 3 || sum0Ver !== 3) {
+        return false
+      } else {
+        sum0Hor = 0
+        sum0Ver = 0
+      }
+    }
+
+    return true
+  }
+
+  checkNotNull = () => {
+    for (let i = 0; i < 6; i++) {
+      for (let j = 0; j < 6; j++) {
+        if (this.data[i][j] === ItemStateTypes.NOT_PICK) {
+          return false
+        }
+      }
+    }
+
+    return true
+  }
+
+  /**
+   * check data is valid the rule of game
+   * @param checkNull (for initial data we should not check null
+   * @returns {boolean}
+   */
+  checkValid = (checkNull) => {
+
+    return (
+      (checkNull ? this.checkNotNull() : true) &&
+      this.checkSumEqual() &&
+      this.checkLessThanThreeDigitsAdjacent() &&
+      this.checkNotSameBetweenRowsColumns()
+    )
   }
 
   getRandomStaticPosition = () => {
@@ -29,8 +117,7 @@ export class TakuzuTable extends React.PureComponent {
           i: iRandomPosition,
           j: jRandomPosition,
         })
-      }
-      else {
+      } else {
         continue
       }
       iter++
@@ -40,30 +127,18 @@ export class TakuzuTable extends React.PureComponent {
   }
 
   generateData = () => {
+    let data = new Array(6)
 
-
-    let data = new Array(4)
-
-    for (let i = 0; i < 4; i++) {
-      data[i] = new Array(4)
+    for (let i = 0; i < 6; i++) {
+      data[i] = new Array(6)
     }
 
-    for (let i = 0; i < 4; i++) {
-      for (let j = 0; j < 4; j++) {
-        console.log('i', i, 'j', j)
-        if (_.findIndex((val) => (val.i === i && val.j === j)) === -1) {
-          data[i][j] = (i + j) % 2 === 0 ? ItemStateTypes.PICK_ZERO : ItemStateTypes.PICK_ONE
-        } else {
-          data[i][j] = ItemStateTypes.NOT_PICK
-        }
+    for (let i = 0; i < 6; i++) {
+      for (let j = 0; j < 6; j++) {
+        data[i][j] = ItemStateTypes.NOT_PICK
       }
     }
     return data
-    // for (let i = 0; i < 4; i++) {
-    //   for (let j = 0; j < 4; j++) {
-    //     console.log(this.data[i][j] + " ");
-    //   }
-    // }
   }
 
   getArrayDataPerLine = (key) => {
@@ -72,7 +147,21 @@ export class TakuzuTable extends React.PureComponent {
     })
   }
 
-  onPress = (key, data) => {}
+  onPress = (key, data) => {
+    const {
+      navigation,
+      onWin,
+    } = this.props
+
+    for (let i = 0; i < 6; i++) {
+      this.data[key][i] = data[i]
+    }
+
+    if (this.checkValid(true)) {
+      onWin()
+      navigation.navigate('Rank')
+    }
+  }
 
   render() {
     return (
@@ -81,6 +170,8 @@ export class TakuzuTable extends React.PureComponent {
         <TakuzuLine data={this.getArrayDataPerLine(1)} onPress={(data) => this.onPress(1, data)} />
         <TakuzuLine data={this.getArrayDataPerLine(2)} onPress={(data) => this.onPress(2, data)} />
         <TakuzuLine data={this.getArrayDataPerLine(3)} onPress={(data) => this.onPress(3, data)} />
+        <TakuzuLine data={this.getArrayDataPerLine(4)} onPress={(data) => this.onPress(4, data)} />
+        <TakuzuLine data={this.getArrayDataPerLine(5)} onPress={(data) => this.onPress(5, data)} />
       </View>
     )
   }
@@ -95,3 +186,5 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.gray_888888,
   },
 })
+
+export default withNavigation(TakuzuTable)

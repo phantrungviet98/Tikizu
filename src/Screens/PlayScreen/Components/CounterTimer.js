@@ -22,6 +22,10 @@ export class CounterTimer extends React.PureComponent {
   }
 
   start = () => {
+    const {
+      getTime
+    } = this.props
+
     this.timer = setInterval(() => {
       const {secondsCounter, minutesCounter} = this.state
 
@@ -37,7 +41,7 @@ export class CounterTimer extends React.PureComponent {
         {
           minutesCounter: count.length === 1 ? '0' + count : count,
           secondsCounter: num.length === 1 ? '0' + num : num,
-        },
+        }, () => getTime(this.state.minutesCounter+':'+this.state.secondsCounter)
       )
     }, 1000)
   }

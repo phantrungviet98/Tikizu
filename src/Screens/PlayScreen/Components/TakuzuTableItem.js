@@ -20,10 +20,10 @@ export class TakuzuTableItem extends React.PureComponent {
       itemState:
         itemState === ItemStateTypes.NOT_PICK
           ? ItemStateTypes.PICK_ONE
-          : itemState === ItemStateTypes.PICK_ONE
+          : (itemState === ItemStateTypes.PICK_ONE
           ? ItemStateTypes.PICK_ZERO
-          : ItemStateTypes.NOT_PICK,
-    }, onPress(itemState))
+          : ItemStateTypes.NOT_PICK),
+    }, () => onPress(this.state.itemState))
   }
 
   render() {
@@ -52,7 +52,7 @@ export class TakuzuTableItem extends React.PureComponent {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.white_FFFFFF,
-    width: '25%',
+    width: '16.66%',
     height: '100%',
     borderWidth: 1,
     borderColor: Colors.gray_888888,
