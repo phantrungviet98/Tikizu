@@ -18,7 +18,7 @@ export class TakuzuLine extends React.PureComponent {
 
   render() {
     const {data} = this.props
-
+    console.log(data)
     return (
       <View style={styles.line}>
         {data.map((element, index) =>
